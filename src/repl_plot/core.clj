@@ -73,4 +73,5 @@
     (draw-matrix x-intervals y-intervals xy-intervalized-set #(print (y->y-display %) "|"  ) identity)
     (draw-x-axis x-display display-step max-width precision (fn [] (apply str (repeat (inc (apply max (map count y-display))) " "))) (fn [] ""))))
 
-(plot (repeatedly 10 #(rand 10)) (repeatedly 10 #(rand 10)) :max-width 60.0 :max-height 20 :display-step 15.0 :precision 1)
+(plot (repeatedly 10 #(rand 10)) (repeatedly 10 #(rand 10)) :max-width 60 :max-height 20 :display-step 15.0 :precision 1)
+(plot (range 10) (map #(+ (Math/sin %) (Math/cos %)) (range 10)) :max-width 60.0 :max-height 20.0 :display-step 15 :precision 1)
