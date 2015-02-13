@@ -4,13 +4,24 @@
   (println x)
   x)
 
+(defn- data-range
+  "Returns the min and max of the list as [min, max]"
+  [xs]
+  [(apply min xs) (apply max xs)])
+
+(defn- range-step
+  "Returns the step size between two spaces in the grid along an axis."
+  [x-min x-max max-width]
+  (/ (- x-max x-min) max-width)) 
+
 (defn- draw-x-axis
-  [x-display display-step max-width precision row-pre-print row-post-print]
+  "Draws the x axis given "
+  [x-display display-step max-width row-pre-print row-post-print]
   (let [intervals-to-display (map first (partition-all (int display-step) x-display))]
     (println (row-pre-print) (apply str (repeat (inc max-width) "-")))
     (doseq [row-nums (partition (count intervals-to-display) 
                                 (apply interleave intervals-to-display))]
-      (print (row-pre-print) "")
+      (print (row-pre-print) "") ; Need to add the "" for an extra space
       (doseq [n row-nums]
         (print (apply str n (repeat (dec display-step) " "))))
       (print (row-post-print)"\n"))))
@@ -20,11 +31,8 @@
   (first (apply min-key second (map (fn [k] [k (Math/abs (- k n))]) intervals))))
 
 (defn- x-y-to-matrix 
-  [xs ys x-intervals y-intervals]
-  (let [xs-intervalized (map #(find-closest % x-intervals) xs)
-        ys-intervalized (map #(find-closest % y-intervals) ys)
-        xy-pairs (partition 2 (interleave xs-intervalized ys-intervalized))]
-      (into #{} xy-pairs)))
+  [xy-pairs]
+  (into {} (map (fn [pair] [pair "*"]) xy-pairs))) 
 
 (defn- draw-matrix 
   [x-intervals y-intervals xy-set row-pre-print row-post-print]
@@ -32,18 +40,12 @@
     (row-pre-print y)
     (doseq [x x-intervals]
       (if (xy-set [x y])
-        (print "*")
+        (print (xy-set [x y]))
         (print " ")))
     (row-post-print y)
     (print "\n")))
 
-(defn- data-range 
-  [xs]
-  [(apply min xs) (apply max xs)])
 
-(defn- range-step 
-  [x-min x-max max-width]
-  (/ (- x-max x-min) max-width))
 
 (defn- displayify-intervals 
   [intervals precision prepend-padding?]
@@ -66,12 +68,15 @@
         y-step (range-step y-min y-max max-height)
         x-intervals (range x-min (+ x-max x-step) x-step)
         y-intervals (range y-min (+ y-max y-step) y-step)
+        xs-intervalized (map #(find-closest % x-intervals) xs)
+        ys-intervalized (map #(find-closest % y-intervals) ys)
+        xy-pairs (partition 2 (interleave xs-intervalized ys-intervalized)) 
         x-display (displayify-intervals x-intervals precision false)
         y-display (displayify-intervals y-intervals precision true)
         y->y-display (zipmap y-intervals y-display)
-        xy-intervalized-set (x-y-to-matrix xs ys x-intervals y-intervals)]
-    (draw-matrix x-intervals y-intervals xy-intervalized-set #(print (y->y-display %) "|"  ) identity)
-    (draw-x-axis x-display display-step max-width precision (fn [] (apply str (repeat (inc (apply max (map count y-display))) " "))) (fn [] ""))))
+        xy-matrix (x-y-to-matrix xy-pairs)]
+    (draw-matrix x-intervals y-intervals xy-matrix #(print (y->y-display %) "|"  ) identity)
+    (draw-x-axis x-display display-step max-width (fn [] (apply str (repeat (inc (apply max (map count y-display))) " "))) (fn [] ""))))
 
-(plot (repeatedly 10 #(rand 10)) (repeatedly 10 #(rand 10)) :max-width 60 :max-height 20 :display-step 15.0 :precision 1)
-(plot (range 10) (map #(+ (Math/sin %) (Math/cos %)) (range 10)) :max-width 60.0 :max-height 20.0 :display-step 15 :precision 1)
+(plot (repeatedly 100 #(rand 10)) (repeatedly 100 #(rand 10)) :max-width 60 :max-height 20 :display-step 15.0 :precision 1)
+(plot (range 0 1.05 0.1) (map #(* % %) (range 0 1.05 0.1)) :max-width 60.0 :max-height 30.0 :display-step 15 :precision 1)
