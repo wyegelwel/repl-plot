@@ -6,6 +6,7 @@ A library that allows you to plot in the terminal. This is not meant to take thi
 
 Just add this line to your project.clj:
 
+[![Clojars Project](http://clojars.org/repl-plot/latest-version.svg)](http://clojars.org/repl-plot)
 
 ## Plotting
 
