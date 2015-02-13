@@ -91,7 +91,25 @@
         y->y-display (zipmap y-intervals y-display)
         xy-matrix (x-y-to-matrix xy-pairs)]
     (draw-matrix x-intervals y-intervals xy-matrix #(print (y->y-display %) "|"  ) identity)
-    (draw-x-axis x-display display-step max-width (fn [] (apply str (repeat (inc (apply max (map count y-display))) " "))) (fn [] ""))))
+    (draw-x-axis x-display x-axis-display-step max-width (fn [] (apply str (repeat (inc (apply max (map count y-display))) " "))) (fn [] ""))))
 
-(plot (repeatedly 100 #(rand 10)) (repeatedly 100 #(rand 10)) :max-width 60 :max-height 20 :display-step 15.0 :precision 1)
-(plot (range 0 1.05 0.1) (map #(* % %) (range 0 1.05 0.1)) :max-width 60.0 :max-height 30.0 :display-step 15 :precision 1)
+(defn hist
+  "Plots a histogram into the terminal. data is expected to be a list of tuples,
+   where the first is the category and the second is the count
+  
+   The display of the histogram can be tuned by providing key-value pairs.
+       :max-items is the number of items we will display before scaling."
+  [data & {:keys [max-items] :or {max-items 60}}]
+  (let [max-count (apply max (map second data))
+        max-items (min max-count max-items)
+        max-category-len (apply max (map (comp count str first) data))
+        max-count-len (apply max (map (comp count str second) data))]
+    (doseq [[category cnt] data]
+      (printf (str "%" max-category-len "s %" max-count-len "d %s\n")
+              category
+              cnt
+              (clojure.string/join "" (repeat (* max-items (/ cnt max-count)) "#"))))))
+
+(comment (plot (repeatedly 100 #(rand 10)) (repeatedly 100 #(rand 10)) :max-width 60 :max-height 20 :display-step 15.0 :precision 1)
+         (plot (range 0 1.05 0.1) (map #(* % %) (range 0 1.05 0.1)) :max-width 60.0 :max-height 30.0 :display-step 15 :precision 1)
+         (hist [[:apples (rand-int 300)] [:bananas (rand-int 200)] [:oranges (rand-int 150)]]))
