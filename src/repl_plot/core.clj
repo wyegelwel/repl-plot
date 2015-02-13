@@ -15,7 +15,7 @@
   (/ (- x-max x-min) max-width)) 
 
 (defn- draw-x-axis
-  "Draws the x axis given "
+  "Draws the x axis with the numbers running vertically"
   [x-display display-step max-width row-pre-print row-post-print]
   (let [intervals-to-display (map first (partition-all (int display-step) x-display))]
     (println (row-pre-print) (apply str (repeat (inc max-width) "-")))
@@ -26,15 +26,20 @@
         (print (apply str n (repeat (dec display-step) " "))))
       (print (row-post-print)"\n"))))
 
-(defn- find-closest 
-  [n intervals]
-  (first (apply min-key second (map (fn [k] [k (Math/abs (- k n))]) intervals))))
+(defn- find-closest
+  "Find the closest number to n in the interval"
+  [n interval]
+  (first (apply min-key second (map (fn [k] [k (Math/abs (- k n))]) interval))))
 
-(defn- x-y-to-matrix 
+(defn- x-y-to-matrix
+  "Maps the xy pairs into an adjency list represented as a map, where the keys
+   are [x,y] pairs and the values are what should be shown in that space. If a
+   space is nil, nothing should be in that space."
   [xy-pairs]
   (into {} (map (fn [pair] [pair "*"]) xy-pairs))) 
 
-(defn- draw-matrix 
+(defn- draw-matrix
+  "Given an adjency list, draw the spaces in the terminal."
   [x-intervals y-intervals xy-set row-pre-print row-post-print]
   (doseq [y (reverse y-intervals)]
     (row-pre-print y)
@@ -47,7 +52,8 @@
 
 
 
-(defn- displayify-intervals 
+(defn- displayify-intervals
+  "Take intervals of doubles and turn them into strings we can display."
   [intervals precision prepend-padding?]
   (let [format-precision #(format (str "%." (int precision) "f") (double %))
         str-intervals (map format-precision intervals)
@@ -60,8 +66,17 @@
            (str (prepend-fn x) x (append-fn x)))
          str-intervals)))
 
-(defn plot 
-  [xs ys & {:keys [max-width max-height display-step precision]}]
+(defn plot
+  "Plot a scatter plot in the terminal. xs and ys are expected to be lists of
+   numbers where i-th number in xs is paired with the i-th number in ys.
+  
+   The display of the plot can be tuned by providing key-value pairs.
+       :max-width is the number of columns to use in the terminal. 
+       :max-height is the number of rows to use in the terminal.
+       :x-axis-display-step the number of spaces between x ticks on the axis
+       :precision for the x and y axis, the number of decimal points to display"
+  [xs ys & {:keys [max-width max-height x-axis-display-step precision]
+            :or {max-width 60 max-height 30 x-axis-display-step 15 precision 1}}]
   (let [[x-min x-max] (data-range xs)
         [y-min y-max] (data-range ys)
         x-step (range-step x-min x-max max-width)
