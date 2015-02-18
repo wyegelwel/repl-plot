@@ -1,9 +1,5 @@
 (ns repl-plot.core)
 
-(defn s [x]
-  (println x)
-  x)
-
 (defn- data-range
   "Returns the min and max of the list as [min, max]"
   [xs]
@@ -50,8 +46,6 @@
     (row-post-print y)
     (print "\n")))
 
-
-
 (defn- displayify-intervals
   "Take intervals of doubles and turn them into strings we can display."
   [intervals precision prepend-padding?]
@@ -66,6 +60,12 @@
            (str (prepend-fn x) x (append-fn x)))
          str-intervals)))
 
+(defn- intervalize
+  [xs max-intervals]
+  (let [[x-min x-max] (data-range xs)
+        x-step (range-step x-min x-max max-intervals)]
+    (range x-min (+ x-max x-step) x-step)))
+
 (defn plot
   "Plot a scatter plot in the terminal. xs and ys are expected to be lists of
    numbers where i-th number in xs is paired with the i-th number in ys.
@@ -77,12 +77,8 @@
        :precision for the x and y axis, the number of decimal points to display"
   [xs ys & {:keys [max-width max-height x-axis-display-step precision]
             :or {max-width 60 max-height 30 x-axis-display-step 15 precision 1}}]
-  (let [[x-min x-max] (data-range xs)
-        [y-min y-max] (data-range ys)
-        x-step (range-step x-min x-max max-width)
-        y-step (range-step y-min y-max max-height)
-        x-intervals (range x-min (+ x-max x-step) x-step)
-        y-intervals (range y-min (+ y-max y-step) y-step)
+  (let [x-intervals (intervalize xs max-width)
+        y-intervals (intervalize ys max-height)
         xs-intervalized (map #(find-closest % x-intervals) xs)
         ys-intervalized (map #(find-closest % y-intervals) ys)
         xy-pairs (partition 2 (interleave xs-intervalized ys-intervalized)) 
